@@ -4,11 +4,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:omni_solve_ai/app/theme/app_theme.dart';
 import 'package:omni_solve_ai/app/theme/theme_provider.dart';
 import 'package:omni_solve_ai/features/home/presentation/main_wrapper.dart';
+import 'package:omni_solve_ai/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     debugPrint('Firebase initializeApp notice: $e');
   }

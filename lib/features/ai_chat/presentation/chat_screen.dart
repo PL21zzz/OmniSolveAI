@@ -22,15 +22,15 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<ChatMessage> _messages = [
     ChatMessage(
       text:
-          'Chào bạn! Tôi là Gia sư AI OmniSolve 🤖. Bạn cần tôi hỗ trợ giải bài tập hay giải thích khái niệm nào hôm nay?',
+          'Chào bạn! Tôi là Gia sư AI OmniSolve 🤖. Tôi có thể hỗ trợ bạn học 4 môn trọng tâm: Toán học, Vật Lý, Hóa Học và Tiếng Anh. Bạn cần hỏi gì hôm nay?',
       isUser: false,
     ),
   ];
 
-  String _selectedSubject = 'Toán học';
+  String _selectedSubject = 'Tiếng Anh';
   bool _isTyping = false;
 
-  final List<String> _subjects = ['Toán học', 'Vật Lý', 'Hóa Học', 'Lập Trình', 'Tiếng Anh'];
+  final List<String> _subjects = ['Toán học', 'Vật Lý', 'Hóa Học', 'Tiếng Anh'];
 
   void _sendMessage([String? customText]) {
     final text = customText ?? _controller.text.trim();
@@ -45,23 +45,79 @@ class _ChatScreenState extends State<ChatScreen> {
       _isTyping = true;
     });
 
-    // Simulate intelligent streaming AI response
-    Future.delayed(const Duration(milliseconds: 1200), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (!mounted) return;
+      final aiReply = _generateDomainAwareReply(text, _selectedSubject);
       setState(() {
         _isTyping = false;
-        _messages.add(
-          ChatMessage(
-            text:
-                'Dựa trên thắc mắc về môn **$_selectedSubject**, câu trả lời chi tiết của gia sư AI là:\n\n'
-                '1. Khái niệm cốt lõi: $text liên quan trực tiếp đến định lý cơ bản.\n'
-                '2. Ví dụ áp dụng: Giả sử x = 5, khi đó f(x) = 2x + 3 = 13.\n\n'
-                'Bạn có muốn tôi cho thêm 1 bài tập mẫu để tự làm không?',
-            isUser: false,
-          ),
-        );
+        _messages.add(ChatMessage(text: aiReply, isUser: false));
       });
     });
+  }
+
+  String _generateDomainAwareReply(String query, String subject) {
+    final lower = query.toLowerCase();
+
+    // Check vocabulary or English dictionary queries
+    if (lower.contains('smart') || lower.contains('nghĩa là gì') || lower.contains('dịch') || lower.contains('từ vựng') || subject == 'Tiếng Anh') {
+      if (lower.contains('smart')) {
+        return '''
+📚 **Giải nghĩa từ 'Smart' (Tiếng Anh):**
+
+• **Loại từ:** Tính từ (Adjective)
+• **Phát âm:** /smɑːrt/
+
+**Các nghĩa chính:**
+1. **Thông minh, nhanh trí:**
+   *Ví dụ:* "He is a smart student." (Cậu ấy là một học sinh thông minh).
+2. **Lanh lợi, tinh khôn:**
+   *Ví dụ:* "Smart phone" (Điện thoại thông minh).
+3. **Lịch sự, chỉn chu (Ăn mặc):**
+   *Ví dụ:* "You look very smart in that suit!" (Bạn trông rất lịch thiệp trong bộ vest đó).
+
+👉 **Từ đồng nghĩa (Synonyms):** Intelligent, Clever, Bright, Sharp.
+''';
+      }
+
+      return '''
+🇬🇧 **Gia sư Tiếng Anh phản hồi:**
+
+Về thắc mắc "$query":
+• **Từ vựng / Cấu trúc:** Được dùng phổ biến trong giao tiếp Tiếng Anh hàng ngày.
+• **Ví dụ mẫu:** "Learning English with AI is very efficient and smart."
+• **Gợi ý:** Bạn có thể đặt câu thử với từ này và gửi lại để gia sư AI sửa lỗi ngữ pháp giúp bạn nhé!
+''';
+    }
+
+    if (subject == 'Vật Lý' || lower.contains('lý') || lower.contains('vận tốc') || lower.contains('lực')) {
+      return '''
+⚡ **Gia sư Vật Lý phản hồi:**
+
+Dựa trên thắc mắc về môn **Vật Lý**:
+1. Khái niệm cốt lõi: $query liên quan đến các quy luật động học và bảo toàn năng lượng.
+2. Công thức áp dụng: \$F = m \\cdot a\$ hoặc \$P = m \\cdot v\$.
+3. Gợi ý: Hãy xác định rõ các đại lượng đã biết và đơn vị chuẩn (SI) trước khi thay số!
+''';
+    }
+
+    if (subject == 'Hóa Học' || lower.contains('hóa') || lower.contains('phản ứng') || lower.contains('axit')) {
+      return '''
+🧪 **Gia sư Hóa Học phản hồi:**
+
+Dựa trên câu hỏi về **Hóa Học**:
+1. Phương trình phản ứng: Cần chú ý số oxy hóa của các nguyên tố thay đổi trước và sau phản ứng.
+2. Mẹo cân bằng: Áp dụng phương pháp thăng bằng electron hoặc đếm nhóm nguyên tử cố định.
+''';
+    }
+
+    // Default Math response
+    return '''
+📐 **Gia sư Toán Học phản hồi:**
+
+Về bài toán liên quan đến "$query":
+1. Phương pháp giải: Xác định điều kiện xác định của biến số, sau đó biến đổi biểu thức theo công thức lượng giác hoặc tích phân cơ bản.
+2. Bạn có muốn gia sư AI hướng dẫn từng bước cụ thể không?
+''';
   }
 
   @override
@@ -75,15 +131,15 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: primaryColor.withOpacity(0.2),
+              backgroundColor: primaryColor.withValues(alpha: 0.2),
               child: Icon(Icons.auto_awesome, color: primaryColor, size: 18),
             ),
             const SizedBox(width: 10),
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Gia sư AI 24/7', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text('Sẵn sàng giải đáp mọi câu hỏi', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                Text('Gia sư AI 24/7 (4 Môn)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                Text('Toán • Lý • Hóa • Tiếng Anh', style: TextStyle(fontSize: 10, color: Colors.grey)),
               ],
             ),
           ],
@@ -91,7 +147,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          // Subject Selector Bar
+          // 4-Subject Selector Bar
           Container(
             height: 48,
             padding: const EdgeInsets.symmetric(vertical: 6),
@@ -112,7 +168,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _selectedSubject = subject;
                       });
                     },
-                    selectedColor: primaryColor.withOpacity(0.2),
+                    selectedColor: primaryColor.withValues(alpha: 0.2),
                     checkmarkColor: primaryColor,
                     labelStyle: TextStyle(
                       fontSize: 12,
@@ -132,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
           // Chat Messages List
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
@@ -149,7 +205,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Icon(Icons.auto_awesome, size: 16, color: primaryColor),
                   const SizedBox(width: 8),
                   Text(
-                    'AI Tutor đang soạn câu trả lời...',
+                    'Gia sư AI đang tra cứu câu trả lời...',
                     style: TextStyle(fontSize: 12, color: primaryColor, fontStyle: FontStyle.italic),
                   ),
                 ],
@@ -164,9 +220,9 @@ class _ChatScreenState extends State<ChatScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
+                _buildQuickPromptChip('🇬🇧 Smart nghĩa là gì?', primaryColor),
                 _buildQuickPromptChip('💡 Giải thích đơn giản hơn', primaryColor),
                 _buildQuickPromptChip('📌 Cho ví dụ thực tế', primaryColor),
-                _buildQuickPromptChip('📐 Công thức liên quan', primaryColor),
               ],
             ),
           ),
@@ -185,19 +241,11 @@ class _ChatScreenState extends State<ChatScreen> {
             child: SafeArea(
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.add_photo_alternate_outlined),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Đã chọn đính kèm hình ảnh bài tập')),
-                      );
-                    },
-                  ),
                   Expanded(
                     child: TextField(
                       controller: _controller,
                       decoration: InputDecoration(
-                        hintText: 'Hỏi gia sư AI về $_selectedSubject...',
+                        hintText: 'Hỏi gia sư AI về môn $_selectedSubject...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
@@ -235,7 +283,7 @@ class _ChatScreenState extends State<ChatScreen> {
       color: message.isUser
           ? Colors.white
           : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-      fontSize: 14,
+      fontSize: 13.5,
       height: 1.4,
     );
 
@@ -245,7 +293,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          constraints: const BoxConstraints(maxWidth: 280),
+          constraints: const BoxConstraints(maxWidth: 300),
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.only(

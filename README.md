@@ -92,22 +92,6 @@ lib/
 
 ---
 
-## 📝 Nhật Ký Commit Git (Git Milestones)
-
-Dự án được xây dựng theo từng phân đoạn tiêu chuẩn:
-* `feat: initial flutter project setup for OmniSolve AI`
-* `feat: add app dependencies and theme system with light/dark mode support`
-* `feat: implement floating bottom navigation bar and screen routing`
-* `feat: implement home dashboard UI with cyan theme and dark mode support`
-* `feat: implement AI homework scanner and error debugger with Gemini Vision API`
-* `feat: implement AI tutor chatbot with subject selection and prompt chips`
-* `feat: implement interactive flashcard deck and quiz review system`
-* `feat: implement study analytics dashboard with fl_chart visualization`
-* `feat: implement Google sign-in UI and user profile management`
-* `docs: complete README.md and final project documentation`
-
----
-
 ## 👨‍💻 Tác Giả (Author)
 
 * **Phong Lang** - Flutter & Mobile Developer

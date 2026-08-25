@@ -119,7 +119,7 @@ class HomeScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Bài tập đã chẩn đoán',
+                  'Bài tập đã chấm điểm',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 TextButton(
@@ -208,9 +208,9 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildQuickActions(BuildContext context, WidgetRef ref, bool isDark) {
     final List<Map<String, dynamic>> items = [
       {
-        'title': 'Scan & Chẩn đoán',
-        'subtitle': 'Chụp ảnh bài làm lỗi',
-        'icon': Icons.camera_alt_rounded,
+        'title': 'AI Chấm Bài & Sửa Bài',
+        'subtitle': 'Chụp ảnh bài làm của bạn',
+        'icon': Icons.assignment_turned_in_rounded,
         'color': const Color(0xFF0D9488),
         'tab': 1,
       },
@@ -306,7 +306,7 @@ class HomeScreen extends ConsumerWidget {
         'date': 'Thứ 3, 25 Tháng 8, 2026',
         'subject': 'Giải Tích III',
         'rating': 4.9,
-        'status': 'Đã sửa 1 lỗi',
+        'status': 'Đã chấm: 9/10 đ',
         'tagColor': const Color(0xFF0D9488),
       },
       {
@@ -314,7 +314,7 @@ class HomeScreen extends ConsumerWidget {
         'date': 'Thứ 2, 24 Tháng 8, 2026',
         'subject': 'Vật Lý Đại Cương',
         'rating': 5.0,
-        'status': 'Đã chuẩn 100%',
+        'status': 'Đã chấm: 10/10 đ',
         'tagColor': const Color(0xFF6366F1),
       },
     ];
@@ -346,7 +346,7 @@ class HomeScreen extends ConsumerWidget {
                   color: tagColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(Icons.functions_rounded, color: tagColor, size: 26),
+                child: Icon(Icons.assignment_turned_in_rounded, color: tagColor, size: 26),
               ),
               const SizedBox(width: 12),
               Expanded(

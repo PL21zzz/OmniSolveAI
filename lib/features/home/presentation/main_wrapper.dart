@@ -71,8 +71,8 @@ class MainWrapper extends ConsumerWidget {
                       child: _NavItem(
                         index: 1,
                         currentIndex: currentIndex,
-                        icon: Icons.document_scanner_rounded,
-                        label: 'Chẩn đoán',
+                        icon: Icons.assignment_turned_in_rounded,
+                        label: 'AI Chấm Bài',
                         onTap: () => ref.read(navigationIndexProvider.notifier).state = 1,
                       ),
                     ),

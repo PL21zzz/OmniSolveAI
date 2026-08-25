@@ -19,16 +19,17 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final isCorrect = widget.result.isCorrect;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.result.title),
+        title: Text('Kết Quả AI Chấm Bài ${widget.result.subject}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.bookmark_border_rounded),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã lưu bài tập vào kho lưu trữ!')),
+                const SnackBar(content: Text('Đã lưu bài làm vào Firestore!')),
               );
             },
           ),
@@ -39,7 +40,58 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Extracted Formula Card
+            // AI Score & Evaluation Status Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: (isCorrect ? Colors.green : AppColors.error).withValues(alpha: isDark ? 0.2 : 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: (isCorrect ? Colors.green : AppColors.error).withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: isCorrect ? Colors.green : AppColors.error,
+                    child: Text(
+                      '${widget.result.score}',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              isCorrect ? 'Chúc mừng! Bài làm ĐÚNG 🎉' : 'Phát hiện lỗi sai ở Bước ${widget.result.errorStep}',
+                              style: TextStyle(
+                                color: isCorrect ? Colors.green : AppColors.error,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.result.errorExplanation,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Extracted Formula / Content Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -51,58 +103,19 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
                 ),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Đề bài / Công thức trích xuất',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                    'Nội dung trích xuất từ bài làm:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   MathView(
                     tex: widget.result.extractedEquation,
                     textStyle: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Error Diagnostic Warning Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(isDark ? 0.2 : 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.error.withOpacity(0.4)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 28),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Phát hiện lỗi sai ở Bước ${widget.result.errorStep}!',
-                          style: const TextStyle(
-                            color: AppColors.error,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.result.errorExplanation,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
@@ -156,7 +169,7 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: primaryColor.withOpacity(0.5)),
+                border: Border.all(color: primaryColor.withValues(alpha: 0.5)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,7 +179,7 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
                       Icon(Icons.fitness_center_rounded, color: primaryColor, size: 20),
                       const SizedBox(width: 8),
                       const Text(
-                        'Tạo bài tập tương tự để luyện tập',
+                        'Đề bài tương tự để luyện tập',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                     ],
@@ -175,7 +188,7 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
                   MathView(
                     tex: widget.result.similarProblem,
                     textStyle: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                     ),

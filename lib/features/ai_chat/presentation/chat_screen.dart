@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:omni_solve_ai/app/theme/app_theme.dart';
+import 'package:omni_solve_ai/features/scanner/data/gemini_service.dart';
 
 class ChatMessage {
   final String text;
@@ -22,17 +23,17 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<ChatMessage> _messages = [
     ChatMessage(
       text:
-          'Chào bạn! Tôi là Gia sư AI OmniSolve 🤖. Tôi có thể hỗ trợ bạn học 4 môn trọng tâm: Toán học, Vật Lý, Hóa Học và Tiếng Anh. Bạn cần hỏi gì hôm nay?',
+          'Chào bạn! Tôi là Gia sư Gemini AI 🤖. Tôi hỗ trợ giải đáp 4 môn: Toán học, Vật Lý, Hóa Học và Tiếng Anh. Hãy đặt câu hỏi bất kỳ cho tôi nhé!',
       isUser: false,
     ),
   ];
 
-  String _selectedSubject = 'Tiếng Anh';
+  String _selectedSubject = 'Toán học';
   bool _isTyping = false;
 
   final List<String> _subjects = ['Toán học', 'Vật Lý', 'Hóa Học', 'Tiếng Anh'];
 
-  void _sendMessage([String? customText]) {
+  Future<void> _sendMessage([String? customText]) async {
     final text = customText ?? _controller.text.trim();
     if (text.isEmpty) return;
 
@@ -45,79 +46,29 @@ class _ChatScreenState extends State<ChatScreen> {
       _isTyping = true;
     });
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    try {
+      final service = GeminiService();
+      final aiReply = await service.askAiTutor(
+        query: text,
+        subject: _selectedSubject,
+      );
+
       if (!mounted) return;
-      final aiReply = _generateDomainAwareReply(text, _selectedSubject);
+
       setState(() {
         _isTyping = false;
         _messages.add(ChatMessage(text: aiReply, isUser: false));
       });
-    });
-  }
-
-  String _generateDomainAwareReply(String query, String subject) {
-    final lower = query.toLowerCase();
-
-    // Check vocabulary or English dictionary queries
-    if (lower.contains('smart') || lower.contains('nghĩa là gì') || lower.contains('dịch') || lower.contains('từ vựng') || subject == 'Tiếng Anh') {
-      if (lower.contains('smart')) {
-        return '''
-📚 **Giải nghĩa từ 'Smart' (Tiếng Anh):**
-
-• **Loại từ:** Tính từ (Adjective)
-• **Phát âm:** /smɑːrt/
-
-**Các nghĩa chính:**
-1. **Thông minh, nhanh trí:**
-   *Ví dụ:* "He is a smart student." (Cậu ấy là một học sinh thông minh).
-2. **Lanh lợi, tinh khôn:**
-   *Ví dụ:* "Smart phone" (Điện thoại thông minh).
-3. **Lịch sự, chỉn chu (Ăn mặc):**
-   *Ví dụ:* "You look very smart in that suit!" (Bạn trông rất lịch thiệp trong bộ vest đó).
-
-👉 **Từ đồng nghĩa (Synonyms):** Intelligent, Clever, Bright, Sharp.
-''';
-      }
-
-      return '''
-🇬🇧 **Gia sư Tiếng Anh phản hồi:**
-
-Về thắc mắc "$query":
-• **Từ vựng / Cấu trúc:** Được dùng phổ biến trong giao tiếp Tiếng Anh hàng ngày.
-• **Ví dụ mẫu:** "Learning English with AI is very efficient and smart."
-• **Gợi ý:** Bạn có thể đặt câu thử với từ này và gửi lại để gia sư AI sửa lỗi ngữ pháp giúp bạn nhé!
-''';
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isTyping = false;
+        _messages.add(ChatMessage(
+          text: 'Gia sư AI bị gián đoạn kết nối. Vui lòng kiểm tra lại mạng.',
+          isUser: false,
+        ));
+      });
     }
-
-    if (subject == 'Vật Lý' || lower.contains('lý') || lower.contains('vận tốc') || lower.contains('lực')) {
-      return '''
-⚡ **Gia sư Vật Lý phản hồi:**
-
-Dựa trên thắc mắc về môn **Vật Lý**:
-1. Khái niệm cốt lõi: $query liên quan đến các quy luật động học và bảo toàn năng lượng.
-2. Công thức áp dụng: \$F = m \\cdot a\$ hoặc \$P = m \\cdot v\$.
-3. Gợi ý: Hãy xác định rõ các đại lượng đã biết và đơn vị chuẩn (SI) trước khi thay số!
-''';
-    }
-
-    if (subject == 'Hóa Học' || lower.contains('hóa') || lower.contains('phản ứng') || lower.contains('axit')) {
-      return '''
-🧪 **Gia sư Hóa Học phản hồi:**
-
-Dựa trên câu hỏi về **Hóa Học**:
-1. Phương trình phản ứng: Cần chú ý số oxy hóa của các nguyên tố thay đổi trước và sau phản ứng.
-2. Mẹo cân bằng: Áp dụng phương pháp thăng bằng electron hoặc đếm nhóm nguyên tử cố định.
-''';
-    }
-
-    // Default Math response
-    return '''
-📐 **Gia sư Toán Học phản hồi:**
-
-Về bài toán liên quan đến "$query":
-1. Phương pháp giải: Xác định điều kiện xác định của biến số, sau đó biến đổi biểu thức theo công thức lượng giác hoặc tích phân cơ bản.
-2. Bạn có muốn gia sư AI hướng dẫn từng bước cụ thể không?
-''';
   }
 
   @override
@@ -205,7 +156,7 @@ Về bài toán liên quan đến "$query":
                   Icon(Icons.auto_awesome, size: 16, color: primaryColor),
                   const SizedBox(width: 8),
                   Text(
-                    'Gia sư AI đang tra cứu câu trả lời...',
+                    'Gia sư Gemini AI đang soạn câu trả lời...',
                     style: TextStyle(fontSize: 12, color: primaryColor, fontStyle: FontStyle.italic),
                   ),
                 ],
@@ -220,9 +171,9 @@ Về bài toán liên quan đến "$query":
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
+                _buildQuickPromptChip('📐 Công thức tích phân từng phần?', primaryColor),
                 _buildQuickPromptChip('🇬🇧 Smart nghĩa là gì?', primaryColor),
-                _buildQuickPromptChip('💡 Giải thích đơn giản hơn', primaryColor),
-                _buildQuickPromptChip('📌 Cho ví dụ thực tế', primaryColor),
+                _buildQuickPromptChip('🧪 Phản ứng oxy hóa khử là gì?', primaryColor),
               ],
             ),
           ),

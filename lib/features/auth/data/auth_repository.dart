@@ -46,12 +46,8 @@ class AuthRepository {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<void> _ensureFirebaseInitialized() async {
-    try {
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp();
-      }
-    } catch (e) {
-      debugPrint('Firebase init check: $e');
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
     }
   }
 
@@ -63,17 +59,6 @@ class AuthRepository {
   }) async {
     await _ensureFirebaseInitialized();
 
-    if (Firebase.apps.isEmpty) {
-      // Demo fallback if Firebase configuration is pending
-      await Future.delayed(const Duration(milliseconds: 800));
-      return UserModel(
-        uid: 'demo_user_123',
-        email: email,
-        displayName: displayName,
-        createdAt: DateTime.now(),
-      );
-    }
-
     try {
       final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -81,7 +66,7 @@ class AuthRepository {
       );
 
       final user = credential.user;
-      if (user == null) throw Exception('Không thể tạo tài khoản');
+      if (user == null) throw Exception('Không thể tạo tài khoản trên Firebase');
 
       await user.updateDisplayName(displayName);
 
@@ -92,7 +77,7 @@ class AuthRepository {
         createdAt: DateTime.now(),
       );
 
-      // Save user to Cloud Firestore
+      // Write directly to Cloud Firestore Database
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userModel.toMap());
 
       return userModel;
@@ -109,16 +94,6 @@ class AuthRepository {
   }) async {
     await _ensureFirebaseInitialized();
 
-    if (Firebase.apps.isEmpty) {
-      await Future.delayed(const Duration(milliseconds: 800));
-      return UserModel(
-        uid: 'demo_user_123',
-        email: email,
-        displayName: 'Phong Lang',
-        createdAt: DateTime.now(),
-      );
-    }
-
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
@@ -128,7 +103,7 @@ class AuthRepository {
       final user = credential.user;
       if (user == null) throw Exception('Đăng nhập thất bại');
 
-      // Fetch user profile from Cloud Firestore
+      // Fetch real user document from Cloud Firestore
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
         return UserModel.fromMap(doc.data()!);
@@ -137,7 +112,7 @@ class AuthRepository {
       return UserModel(
         uid: user.uid,
         email: user.email ?? email,
-        displayName: user.displayName ?? 'Phong Lang',
+        displayName: user.displayName ?? email.split('@').first,
         photoUrl: user.photoURL,
         createdAt: DateTime.now(),
       );
@@ -151,18 +126,8 @@ class AuthRepository {
   Future<UserModel> signInWithGoogle() async {
     await _ensureFirebaseInitialized();
 
-    if (Firebase.apps.isEmpty) {
-      await Future.delayed(const Duration(milliseconds: 800));
-      return UserModel(
-        uid: 'google_demo_123',
-        email: 'phonglang.dev@gmail.com',
-        displayName: 'Phong Lang (Google)',
-        photoUrl: null,
-        createdAt: DateTime.now(),
-      );
-    }
-
     try {
+      // Triggers native Google Account Picker Dialog
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) throw Exception('Đã hủy đăng nhập Google');
 
@@ -184,7 +149,7 @@ class AuthRepository {
         createdAt: DateTime.now(),
       );
 
-      // Save or update user in Cloud Firestore
+      // Write directly to Cloud Firestore Database
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
             userModel.toMap(),
             SetOptions(merge: true),
@@ -193,17 +158,6 @@ class AuthRepository {
       return userModel;
     } catch (e) {
       debugPrint('Google Sign In Error: $e');
-
-      // If ApiException 10 (SHA-1 fingerprint missing on Firebase console for Android)
-      if (e.toString().contains('ApiException: 10')) {
-        return UserModel(
-          uid: 'google_demo_123',
-          email: 'phonglang.dev@gmail.com',
-          displayName: 'Phong Lang (Google Auth)',
-          createdAt: DateTime.now(),
-        );
-      }
-
       throw Exception(_parseAuthError(e.toString()));
     }
   }
@@ -222,12 +176,14 @@ class AuthRepository {
     if (errorMsg.contains('email-already-in-use')) {
       return 'Email này đã được sử dụng cho tài khoản khác.';
     } else if (errorMsg.contains('wrong-password') || errorMsg.contains('user-not-found') || errorMsg.contains('invalid-credential')) {
-      return 'Email hoặc mật khẩu không chính xác.';
+      return 'Tài khoản chưa được đăng ký hoặc Email/Mật khẩu không chính xác trên Firebase.';
     } else if (errorMsg.contains('weak-password')) {
       return 'Mật khẩu quá yếu, vui lòng chọn ít nhất 6 ký tự.';
     } else if (errorMsg.contains('invalid-email')) {
       return 'Định dạng Email không hợp lệ.';
+    } else if (errorMsg.contains('ApiException: 10')) {
+      return 'Chưa thêm mã SHA-1 của máy vào Firebase Console. Vui lòng kiểm tra lại cấu hình Google Auth trên Firebase.';
     }
-    return 'Lỗi xác thực: $errorMsg';
+    return 'Lỗi xác thực Firebase: $errorMsg';
   }
 }

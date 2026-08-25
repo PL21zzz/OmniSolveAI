@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:omni_solve_ai/app/theme/app_theme.dart';
 import 'package:omni_solve_ai/features/auth/data/auth_repository.dart';
+import 'package:omni_solve_ai/features/auth/presentation/profile_screen.dart';
 
 final authRepositoryProvider = Provider((ref) => AuthRepository());
 
@@ -30,28 +31,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final repo = ref.read(authRepositoryProvider);
+      UserModel user;
       if (_isLoginMode) {
-        await repo.signInWithEmail(
+        user = await repo.signInWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
         if (mounted) {
+          ref.read(activeUserModelProvider.notifier).state = user;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Đăng nhập thành công!')),
           );
-          Navigator.pop(context);
         }
       } else {
-        await repo.signUpWithEmail(
+        user = await repo.signUpWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           displayName: _nameController.text.trim(),
         );
         if (mounted) {
+          ref.read(activeUserModelProvider.notifier).state = user;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Đăng ký tài khoản thành công!')),
           );
-          Navigator.pop(context);
         }
       }
     } catch (e) {
@@ -79,12 +81,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final repo = ref.read(authRepositoryProvider);
-      await repo.signInWithGoogle();
+      final user = await repo.signInWithGoogle();
       if (mounted) {
+        ref.read(activeUserModelProvider.notifier).state = user;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đăng nhập bằng Google thành công!')),
         );
-        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -111,10 +113,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isLoginMode ? 'Đăng nhập Tài khoản' : 'Đăng ký Tài khoản mới'),
+        title: Text(_isLoginMode ? 'Đăng nhập' : 'Đăng ký'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 90),
         child: Form(
           key: _formKey,
           child: Column(
@@ -141,7 +143,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 4),
                     Text(
                       _isLoginMode
-                          ? 'Đăng nhập để đồng bộ bài giải & Flashcard lên Firebase'
+                          ? 'Đăng nhập để lưu bài giải & Flashcard lên Firebase'
                           : 'Tạo tài khoản mới để bắt đầu học tập cùng AI',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -152,7 +154,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // Registration Name Field (If Register Mode)
               if (!_isLoginMode) ...[
@@ -168,7 +170,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
               ],
 
               // Email Field
@@ -185,7 +187,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Password Field
               TextFormField(
@@ -201,12 +203,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Main Auth Button (Email/Password)
               SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 48,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitAuth,
                   style: ElevatedButton.styleFrom(
@@ -218,11 +220,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
                       : Text(
                           _isLoginMode ? 'Đăng Nhập' : 'Đăng Ký Tài Khoản',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // OR Divider
               Row(
@@ -241,25 +243,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const Expanded(child: Divider()),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Google Sign-In Button
               SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 48,
                 child: OutlinedButton.icon(
                   onPressed: _isLoading ? null : _handleGoogleSignIn,
                   icon: const Icon(Icons.g_mobiledata_rounded, color: Colors.redAccent, size: 28),
                   label: const Text(
                     'Tiếp tục với Google',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Toggle Mode Link
               Center(

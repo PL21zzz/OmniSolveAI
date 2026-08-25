@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:omni_solve_ai/app/theme/app_theme.dart';
+import 'package:omni_solve_ai/features/auth/presentation/profile_screen.dart';
 import 'package:omni_solve_ai/features/home/presentation/home_screen.dart';
 import 'package:omni_solve_ai/features/scanner/presentation/scanner_screen.dart';
 import 'package:omni_solve_ai/features/ai_chat/presentation/chat_screen.dart';
 import 'package:omni_solve_ai/features/flashcards/presentation/flashcards_screen.dart';
-import 'package:omni_solve_ai/features/auth/presentation/profile_screen.dart';
 
 final navigationIndexProvider = StateProvider<int>((ref) => 0);
 
@@ -15,7 +15,10 @@ class MainWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(navigationIndexProvider);
+    final activeUser = ref.watch(activeUserModelProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final isLoginViewActive = currentIndex == 4 && activeUser == null;
 
     final screens = const [
       HomeScreen(),
@@ -31,77 +34,79 @@ class MainWrapper extends ConsumerWidget {
         index: currentIndex,
         children: screens,
       ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-          height: 64,
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder,
-              width: 1,
+      bottomNavigationBar: isLoginViewActive
+          ? null
+          : SafeArea(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                height: 64,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _NavItem(
+                        index: 0,
+                        currentIndex: currentIndex,
+                        icon: Icons.home_rounded,
+                        label: 'Trang chủ',
+                        onTap: () => ref.read(navigationIndexProvider.notifier).state = 0,
+                      ),
+                    ),
+                    Expanded(
+                      child: _NavItem(
+                        index: 1,
+                        currentIndex: currentIndex,
+                        icon: Icons.document_scanner_rounded,
+                        label: 'Chẩn đoán',
+                        onTap: () => ref.read(navigationIndexProvider.notifier).state = 1,
+                      ),
+                    ),
+                    Expanded(
+                      child: _NavItem(
+                        index: 2,
+                        currentIndex: currentIndex,
+                        icon: Icons.auto_awesome_rounded,
+                        label: 'AI Tutor',
+                        onTap: () => ref.read(navigationIndexProvider.notifier).state = 2,
+                      ),
+                    ),
+                    Expanded(
+                      child: _NavItem(
+                        index: 3,
+                        currentIndex: currentIndex,
+                        icon: Icons.style_rounded,
+                        label: 'Flashcard',
+                        onTap: () => ref.read(navigationIndexProvider.notifier).state = 3,
+                      ),
+                    ),
+                    Expanded(
+                      child: _NavItem(
+                        index: 4,
+                        currentIndex: currentIndex,
+                        icon: Icons.person_rounded,
+                        label: 'Tài khoản',
+                        onTap: () => ref.read(navigationIndexProvider.notifier).state = 4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _NavItem(
-                  index: 0,
-                  currentIndex: currentIndex,
-                  icon: Icons.home_rounded,
-                  label: 'Trang chủ',
-                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 0,
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  index: 1,
-                  currentIndex: currentIndex,
-                  icon: Icons.document_scanner_rounded,
-                  label: 'Chẩn đoán',
-                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 1,
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  index: 2,
-                  currentIndex: currentIndex,
-                  icon: Icons.auto_awesome_rounded,
-                  label: 'AI Tutor',
-                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 2,
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  index: 3,
-                  currentIndex: currentIndex,
-                  icon: Icons.style_rounded,
-                  label: 'Flashcard',
-                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 3,
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  index: 4,
-                  currentIndex: currentIndex,
-                  icon: Icons.person_rounded,
-                  label: 'Tài khoản',
-                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

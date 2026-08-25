@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:omni_solve_ai/app/theme/app_theme.dart';
 import 'package:omni_solve_ai/app/theme/theme_provider.dart';
+import 'package:omni_solve_ai/features/auth/presentation/profile_screen.dart';
 import 'package:omni_solve_ai/features/home/presentation/main_wrapper.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -11,8 +12,13 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final activeUser = ref.watch(activeUserModelProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
+
+    final userName = activeUser != null && activeUser.displayName.isNotEmpty
+        ? activeUser.displayName
+        : 'bạn';
 
     return Scaffold(
       appBar: AppBar(
@@ -21,28 +27,37 @@ class HomeScreen extends ConsumerWidget {
             CircleAvatar(
               radius: 20,
               backgroundColor: primaryColor.withValues(alpha: 0.2),
-              child: const Icon(Icons.person, color: AppColors.primary),
+              backgroundImage: activeUser?.photoUrl != null ? NetworkImage(activeUser!.photoUrl!) : null,
+              child: activeUser?.photoUrl == null
+                  ? const Icon(Icons.person, color: AppColors.primary)
+                  : null,
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Chào Phong Lang! 👋',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Chào $userName! 👋',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                    ),
                   ),
-                ),
-                Text(
-                  'Hôm nay bạn muốn học gì?',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  Text(
+                    activeUser != null ? 'Hôm nay bạn muốn học gì?' : 'Đăng nhập để đồng bộ tiến độ',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -66,7 +81,7 @@ class HomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Streak Banner Card
-            _buildStreakCard(context, isDark, primaryColor),
+            _buildStreakCard(context, isDark, primaryColor, activeUser != null),
             const SizedBox(height: 20),
 
             // Quick Actions Title
@@ -96,7 +111,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
 
-            // Recent Problems List (Matching reference image UI)
+            // Recent Problems List
             _buildRecentProblemsList(context, isDark),
           ],
         ),
@@ -104,7 +119,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStreakCard(BuildContext context, bool isDark, Color primaryColor) {
+  Widget _buildStreakCard(BuildContext context, bool isDark, Color primaryColor, bool isLoggedIn) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -136,31 +151,31 @@ class HomeScreen extends ConsumerWidget {
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 18),
-                      SizedBox(width: 4),
+                      const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 18),
+                      const SizedBox(width: 4),
                       Text(
-                        'Chuỗi 7 ngày liên tục 🔥',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                        isLoggedIn ? 'Chuỗi 7 ngày liên tục 🔥' : 'Tài khoản Khách 👤',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Mục tiêu hôm nay: 4/5 bài',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  isLoggedIn ? 'Mục tiêu hôm nay: 4/5 bài' : 'Khởi động mục tiêu học tập!',
+                  style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: const LinearProgressIndicator(
-                    value: 0.8,
+                  child: LinearProgressIndicator(
+                    value: isLoggedIn ? 0.8 : 0.2,
                     minHeight: 8,
                     backgroundColor: Colors.white24,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 ),
               ],

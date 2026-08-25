@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:omni_solve_ai/app/theme/app_theme.dart';
 import 'package:omni_solve_ai/features/scanner/data/gemini_service.dart';
+import 'package:omni_solve_ai/shared/widgets/math_view.dart';
 
 class SolutionDetailScreen extends StatefulWidget {
   final SolvedProblemResult result;
@@ -57,10 +57,11 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
                   ),
                   const SizedBox(height: 12),
-                  Math.tex(
-                    widget.result.extractedEquation,
+                  MathView(
+                    tex: widget.result.extractedEquation,
                     textStyle: TextStyle(
-                      fontSize: 22,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                       color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                     ),
                   ),
@@ -171,10 +172,11 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Math.tex(
-                    widget.result.similarProblem,
+                  MathView(
+                    tex: widget.result.similarProblem,
                     textStyle: TextStyle(
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                     ),
                   ),

@@ -3,29 +3,29 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // Brand Colors - Cyan & Teal Palette matching reference design
-  static const Color primary = Color(0FF0D9488); // Deep Cyan/Teal
-  static const Color primaryLight = Color(0FF2DD4BF); // Bright Teal Accent
-  static const Color secondary = Color(0FF6366F1); // Soft Indigo Badge
-  static const Color accent = Color(0FF38BDF8); // Electric Sky Blue
+  static const Color primary = Color(0xFF0D9488); // Deep Cyan/Teal
+  static const Color primaryLight = Color(0xFF2DD4BF); // Bright Teal Accent
+  static const Color secondary = Color(0xFF6366F1); // Soft Indigo Badge
+  static const Color accent = Color(0xFF38BDF8); // Electric Sky Blue
 
   // Light Mode Palette
-  static const Color lightBackground = Color(0FFF8FAFC);
-  static const Color lightSurface = Color(0FFFFFFFF);
-  static const Color lightCardBorder = Color(0FFE2E8F0);
-  static const Color lightTextPrimary = Color(0FF0F172A);
-  static const Color lightTextSecondary = Color(0FF64748B);
+  static const Color lightBackground = Color(0xFFF8FAFC);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightCardBorder = Color(0xFFE2E8F0);
+  static const Color lightTextPrimary = Color(0xFF0F172A);
+  static const Color lightTextSecondary = Color(0xFF64748B);
 
   // Dark Mode Palette
-  static const Color darkBackground = Color(0FF0F172A);
-  static const Color darkSurface = Color(0FF1E293B);
-  static const Color darkCardBorder = Color(0FF334155);
-  static const Color darkTextPrimary = Color(0FFF8FAFC);
-  static const Color darkTextSecondary = Color(0FF94A3B8);
+  static const Color darkBackground = Color(0xFF0F172A);
+  static const Color darkSurface = Color(0xFF1E293B);
+  static const Color darkCardBorder = Color(0xFF334155);
+  static const Color darkTextPrimary = Color(0xFFF8FAFC);
+  static const Color darkTextSecondary = Color(0xFF94A3B8);
 
   // System & Status Colors
-  static const Color success = Color(0FF10B981);
-  static const Color warning = Color(0FFF59E0B);
-  static const Color error = Color(0FFEF4444);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFEF4444);
 }
 
 class AppTheme {

@@ -66,7 +66,7 @@ class AnalyticsScreen extends StatelessWidget {
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
                   maxY: 10,
-                  barTouchData: BarTouchDataEnabled(false),
+                  barTouchData: BarTouchData(enabled: false),
                   titlesData: FlTitlesData(
                     show: true,
                     bottomTitles: AxisTitles(
@@ -112,7 +112,7 @@ class AnalyticsScreen extends StatelessWidget {
             Text('Độ thành thạo theo môn học', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             _buildMasteryItem(context, subject: 'Giải Tích & Đại Số', progress: 0.88, color: primaryColor, isDark: isDark),
-            _buildMasteryItem(context, subject: 'Vật Lý Đại Cương', progress: 0.74, color: const Color(0FF6366F1), isDark: isDark),
+            _buildMasteryItem(context, subject: 'Vật Lý Đại Cương', progress: 0.74, color: const Color(0xFF6366F1), isDark: isDark),
             _buildMasteryItem(context, subject: 'Hóa Học Đại Cương', progress: 0.62, color: Colors.orangeAccent, isDark: isDark),
             _buildMasteryItem(context, subject: 'Lập Trình & Cấu Trúc Dữ Liệu', progress: 0.92, color: Colors.green, isDark: isDark),
           ],
@@ -158,7 +158,7 @@ class AnalyticsScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: color.withOpacity(0.15),
+            backgroundColor: color.withValues(alpha: 0.15),
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 12),

@@ -20,7 +20,7 @@ class HomeScreen extends ConsumerWidget {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundColor: primaryColor.withOpacity(0.2),
+              backgroundColor: primaryColor.withValues(alpha: 0.2),
               child: const Icon(Icons.person, color: AppColors.primary),
             ),
             const SizedBox(width: 12),
@@ -110,15 +110,15 @@ class HomeScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
-              ? [const Color(0FF0D9488), const Color(0FF1E293B)]
-              : [const Color(0FF0D9488), const Color(0FF2DD4BF)],
+              ? [const Color(0xFF0D9488), const Color(0xFF1E293B)]
+              : [const Color(0xFF0D9488), const Color(0xFF2DD4BF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.3),
+            color: primaryColor.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -133,7 +133,7 @@ class HomeScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Row(
@@ -172,33 +172,33 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildQuickActions(BuildContext context, WidgetRef ref, bool isDark) {
-    final items = [
+    final List<Map<String, dynamic>> items = [
       {
         'title': 'Scan & Chẩn đoán',
         'subtitle': 'Chụp ảnh bài làm lỗi',
         'icon': Icons.camera_alt_rounded,
-        'color': const Color(0FF0D9488),
+        'color': const Color(0xFF0D9488),
         'tab': 1,
       },
       {
         'title': 'Gia sư AI 24/7',
         'subtitle': 'Hỏi đáp mọi môn',
         'icon': Icons.chat_bubble_rounded,
-        'color': const Color(0FF6366F1),
+        'color': const Color(0xFF6366F1),
         'tab': 2,
       },
       {
         'title': 'Bộ thẻ Flashcard',
         'subtitle': 'Ôn tập ghi nhớ',
         'icon': Icons.style_rounded,
-        'color': const Color(0FFEC4899),
+        'color': const Color(0xFFEC4899),
         'tab': 3,
       },
       {
         'title': 'Thống kê năng lực',
         'subtitle': 'Xem tiến độ học',
         'icon': Icons.bar_chart_rounded,
-        'color': const Color(0FFF59E0B),
+        'color': const Color(0xFFF59E0B),
         'tab': 4,
       },
     ];
@@ -237,7 +237,7 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: color.withOpacity(0.15),
+                  backgroundColor: color.withValues(alpha: 0.15),
                   child: Icon(item['icon'] as IconData, color: color, size: 22),
                 ),
                 const SizedBox(height: 10),
@@ -261,14 +261,14 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildRecentProblemsList(BuildContext context, bool isDark) {
-    final recentData = [
+    final List<Map<String, dynamic>> recentData = [
       {
         'title': 'Hệ phương trình vi phân bậc 2',
         'date': 'Thứ 3, 25 Tháng 8, 2026',
         'subject': 'Giải Tích III',
         'rating': 4.9,
         'status': 'Đã sửa 1 lỗi',
-        'tagColor': const Color(0FF0D9488),
+        'tagColor': const Color(0xFF0D9488),
       },
       {
         'title': 'Định luật bảo toàn động lượng',
@@ -276,7 +276,7 @@ class HomeScreen extends ConsumerWidget {
         'subject': 'Vật Lý Đại Cương',
         'rating': 5.0,
         'status': 'Đã chuẩn 100%',
-        'tagColor': const Color(0FF6366F1),
+        'tagColor': const Color(0xFF6366F1),
       },
     ];
 
@@ -304,7 +304,7 @@ class HomeScreen extends ConsumerWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: tagColor.withOpacity(0.15),
+                  color: tagColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(Icons.functions_rounded, color: tagColor, size: 30),
@@ -359,7 +359,7 @@ class HomeScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.25 : 0.12),
+        color: color.withValues(alpha: isDark ? 0.25 : 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

@@ -20,6 +20,64 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   final List<String> _subjects = ['Toán học', 'Vật Lý', 'Hóa Học', 'Tiếng Anh'];
 
+  Future<void> _showApiKeyDialog() async {
+    final currentKey = await GeminiService.getSavedApiKey() ?? '';
+    final controller = TextEditingController(text: currentKey);
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.key_rounded, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Cấu hình Gemini API Key', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Để kết nối AI thật 100%, bạn có thể dán Gemini API Key của bạn (miễn phí tại aistudio.google.com):',
+                style: TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  hintText: 'AIzaSy...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final nav = Navigator.of(context);
+                await GeminiService.saveApiKey(controller.text.trim());
+                nav.pop();
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Đã lưu Gemini API Key thành công!')),
+                );
+              },
+              child: const Text('Lưu Key'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? file = await _picker.pickImage(
@@ -46,7 +104,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Future<void> _analyzeWithAI() async {
     if (_selectedImageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn hoặc chụp ảnh bài tập trước khi chấm bài!')),
+        const SnackBar(content: Text('Vui lòng chọn hoặc chụp ảnh bài tập trước khi nhờ AI chấm bài!')),
       );
       return;
     }
@@ -93,6 +151,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI Chấm Bài & Sửa Bài (4 Môn)'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.key_rounded),
+            tooltip: 'Nhập Gemini API Key',
+            onPressed: _showApiKeyDialog,
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 90),

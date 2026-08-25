@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SolvedProblemResult {
   final String title;
@@ -66,20 +67,27 @@ class SolvedProblemResult {
 }
 
 class GeminiService {
-  // Free public Gemini API key or fallback Key
-  static const String _defaultApiKey = 'AIzaSyCkrr2ZxwzQ0WZj_v4dfA8gFGkQ-ZJFcjg';
-  late final GenerativeModel _visionModel;
-  late final GenerativeModel _chatModel;
+  static const String _prefApiKey = 'user_gemini_api_key';
 
-  GeminiService({String? apiKey}) {
-    final key = (apiKey != null && apiKey.isNotEmpty) ? apiKey : _defaultApiKey;
-    _visionModel = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: key,
-    );
-    _chatModel = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: key,
+  static Future<String?> getSavedApiKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_prefApiKey);
+  }
+
+  static Future<void> saveApiKey(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefApiKey, key.trim());
+  }
+
+  Future<GenerativeModel> _getModel({String modelName = 'gemini-1.5-flash'}) async {
+    final savedKey = await getSavedApiKey();
+    final apiKey = (savedKey != null && savedKey.isNotEmpty)
+        ? savedKey
+        : 'AIzaSyCkrr2ZxwzQ0WZj_v4dfA8gFGkQ-ZJFcjg'; // Fallback demo key
+
+    return GenerativeModel(
+      model: modelName,
+      apiKey: apiKey,
     );
   }
 
@@ -89,6 +97,7 @@ class GeminiService {
     String selectedSubject = 'Toán học',
   }) async {
     try {
+      final model = await _getModel();
       final prompt = Content.multi([
         TextPart('''
 Bạn là một gia sư AI chuyên gia 4 môn: Toán học, Vật Lý, Hóa Học, Tiếng Anh.
@@ -98,7 +107,7 @@ Hãy đọc ảnh bài làm/bài tập của học sinh môn "$selectedSubject" 
   "subject": "$selectedSubject",
   "isCorrect": true/false (true nếu bài làm ĐÚNG hoàn toàn, false nếu có LỖI SAI hoặc chưa hoàn thành),
   "score": số_điểm_thang_10 (ví dụ 10 nếu đúng, 6-9 nếu đúng một phần, 0-5 nếu sai nặng),
-  "extractedEquation": "Công thức / Nội dung đề bài trích xuất từ ảnh",
+  "extractedEquation": "Nội dung đề bài và lời giải trích xuất từ ảnh",
   "errorStep": số_bước_bị_sai (nếu isCorrect=true thì để 0),
   "errorExplanation": "Nếu làm ĐÚNG: Khen ngợi và khen điểm hay của lời giải. Nếu làm SAI: Chỉ rõ lý do vì sao bước đó chưa chính xác",
   "hintLevel1": "Gợi ý mức 1 (nhắc nhở định hướng tư duy)",
@@ -111,7 +120,7 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
         if (imageBytes.isNotEmpty) DataPart('image/jpeg', imageBytes),
       ]);
 
-      final response = await _visionModel.generateContent([prompt]);
+      final response = await model.generateContent([prompt]);
       final rawText = response.text ?? '{}';
       final cleanJson = rawText
           .replaceAll('```json', '')
@@ -134,7 +143,7 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
       return result;
     } catch (e) {
       debugPrint('Gemini Vision Grading Error: $e');
-      throw Exception('AI chưa thể đọc được ảnh bài làm. Vui lòng đảm bảo ảnh chụp rõ nét bài tập môn $selectedSubject.');
+      throw Exception('Chưa thể kết nối Gemini AI. Vui lòng nhập Gemini API Key của bạn (tạo miễn phí tại aistudio.google.com) hoặc kiểm tra lại kết nối mạng.');
     }
   }
 
@@ -144,17 +153,18 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
     required String subject,
   }) async {
     try {
+      final model = await _getModel();
       final prompt = '''
 Bạn là một gia sư AI thân thiện, kiên nhẫn chuyên môn "$subject" (Toán học, Vật Lý, Hóa Học, Tiếng Anh).
 Học sinh đang hỏi: "$query".
 Hãy trả lời ngắn gọn, dễ hiểu, sử dụng biểu tượng cảm xúc (emoji) và giải thích từng bước rõ ràng.
 ''';
 
-      final response = await _chatModel.generateContent([Content.text(prompt)]);
+      final response = await model.generateContent([Content.text(prompt)]);
       return response.text ?? 'Gia sư AI chưa thể phản hồi lúc này. Vui lòng hỏi lại nhé!';
     } catch (e) {
       debugPrint('Gemini Chat Error: $e');
-      return 'Không thể kết nối với gia sư AI: $e. Vui lòng kiểm tra lại kết nối mạng.';
+      return 'Không thể kết nối Gemini AI: $e. Vui lòng kiểm tra lại Gemini API Key của bạn.';
     }
   }
 }

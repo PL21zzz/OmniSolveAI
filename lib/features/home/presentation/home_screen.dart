@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -8,6 +9,22 @@ import 'package:omni_solve_ai/features/home/presentation/main_wrapper.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
+
+  ImageProvider? _getAvatarImageProvider(String? photoUrl) {
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      if (photoUrl.startsWith('data:image')) {
+        try {
+          final base64Str = photoUrl.split(',').last;
+          return MemoryImage(base64Decode(base64Str));
+        } catch (_) {
+          return null;
+        }
+      } else {
+        return NetworkImage(photoUrl);
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,6 +37,8 @@ class HomeScreen extends ConsumerWidget {
         ? activeUser.displayName
         : 'bạn';
 
+    final avatarImage = _getAvatarImageProvider(activeUser?.photoUrl);
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -27,8 +46,8 @@ class HomeScreen extends ConsumerWidget {
             CircleAvatar(
               radius: 20,
               backgroundColor: primaryColor.withValues(alpha: 0.2),
-              backgroundImage: activeUser?.photoUrl != null ? NetworkImage(activeUser!.photoUrl!) : null,
-              child: activeUser?.photoUrl == null
+              backgroundImage: avatarImage,
+              child: avatarImage == null
                   ? const Icon(Icons.person, color: AppColors.primary)
                   : null,
             ),

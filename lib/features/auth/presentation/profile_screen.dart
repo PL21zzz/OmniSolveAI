@@ -55,6 +55,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _saveProfileChanges(UserModel activeUser) async {
+    // Unfocus text input handle
+    FocusScope.of(context).unfocus();
+
     final newName = _nameController.text.trim();
     if (newName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -99,6 +102,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  ImageProvider? _getAvatarImageProvider(String? photoUrl) {
+    if (_newAvatarBytes != null) {
+      return MemoryImage(_newAvatarBytes!);
+    } else if (photoUrl != null && photoUrl.isNotEmpty) {
+      if (photoUrl.startsWith('data:image')) {
+        try {
+          final base64Str = photoUrl.split(',').last;
+          return MemoryImage(base64Decode(base64Str));
+        } catch (_) {
+          return null;
+        }
+      } else {
+        return NetworkImage(photoUrl);
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeUser = ref.watch(activeUserModelProvider);
@@ -115,184 +136,177 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _isInitialized = true;
     }
 
-    ImageProvider? avatarImage;
-    if (_newAvatarBytes != null) {
-      avatarImage = MemoryImage(_newAvatarBytes!);
-    } else if (activeUser.photoUrl != null && activeUser.photoUrl!.isNotEmpty) {
-      if (activeUser.photoUrl!.startsWith('data:image')) {
-        final base64Str = activeUser.photoUrl!.split(',').last;
-        avatarImage = MemoryImage(base64Decode(base64Str));
-      } else {
-        avatarImage = NetworkImage(activeUser.photoUrl!);
-      }
-    }
+    final avatarImage = _getAvatarImageProvider(activeUser.photoUrl);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thông tin Tài khoản'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 90),
-        child: Column(
-          children: [
-            // User Avatar Picker
-            Center(
-              child: GestureDetector(
-                onTap: _pickAvatarImage,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 46,
-                      backgroundColor: primaryColor.withValues(alpha: 0.2),
-                      backgroundImage: avatarImage,
-                      child: avatarImage == null
-                          ? const Icon(Icons.person, size: 46, color: AppColors.primary)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: CircleAvatar(
-                        radius: 15,
-                        backgroundColor: primaryColor,
-                        child: const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 90),
+          child: Column(
+            children: [
+              // User Avatar Picker
+              Center(
+                child: GestureDetector(
+                  onTap: _pickAvatarImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 46,
+                        backgroundColor: primaryColor.withValues(alpha: 0.2),
+                        backgroundImage: avatarImage,
+                        child: avatarImage == null
+                            ? const Icon(Icons.person, size: 46, color: AppColors.primary)
+                            : null,
                       ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: CircleAvatar(
+                          radius: 15,
+                          backgroundColor: primaryColor,
+                          child: const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                activeUser.displayName.isNotEmpty ? activeUser.displayName : 'Người dùng OmniSolve',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.verified_user_rounded, color: Colors.green, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'Đã đăng nhập Firebase',
+                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              activeUser.displayName.isNotEmpty ? activeUser.displayName : 'Người dùng OmniSolve',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
+              const SizedBox(height: 20),
+
+              // Editable Display Name Field
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.verified_user_rounded, color: Colors.green, size: 16),
-                  SizedBox(width: 4),
                   Text(
-                    'Đã đăng nhập Firebase',
-                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                    'Họ và tên (Bấm vào để chỉnh sửa)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.person_outline, size: 20),
+                      suffixIcon: const Icon(Icons.edit_rounded, size: 18, color: Colors.grey),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 12),
 
-            // Editable Display Name Field
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Họ và tên (Bấm vào để chỉnh sửa)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              // Email Field (Read Only)
+              _buildReadOnlyField('Email tài khoản', activeUser.email, Icons.email_outlined, isDark),
+              const SizedBox(height: 20),
+
+              // Save Changes Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: _isSaving ? null : () => _saveProfileChanges(activeUser),
+                  icon: _isSaving
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Icon(Icons.save_rounded, size: 18),
+                  label: Text(_isSaving ? 'Đang lưu...' : 'Lưu Thay Đổi Hồ Sơ'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.person_outline, size: 20),
-                    suffixIcon: const Icon(Icons.edit_rounded, size: 18, color: Colors.grey),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              const SizedBox(height: 16),
+
+              // Theme & Preferences Section
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Email Field (Read Only)
-            _buildReadOnlyField('Email tài khoản', activeUser.email, Icons.email_outlined, isDark),
-            const SizedBox(height: 20),
-
-            // Save Changes Button
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: _isSaving ? null : () => _saveProfileChanges(activeUser),
-                icon: _isSaving
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.save_rounded, size: 18),
-                label: Text(_isSaving ? 'Đang lưu...' : 'Lưu Thay Đổi Hồ Sơ'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: const Text('Chế độ Tối (Dark Mode)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      subtitle: const Text('Tối ưu cho việc học tập ban đêm', style: TextStyle(fontSize: 11)),
+                      value: themeMode == ThemeMode.dark,
+                      activeColor: primaryColor,
+                      onChanged: (val) {
+                        ref.read(themeModeProvider.notifier).toggleTheme();
+                      },
+                    ),
+                    const Divider(height: 1),
+                    SwitchListTile(
+                      title: const Text('Đồng bộ Cloud Firestore', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      subtitle: const Text('Tự động lưu bài tập & Flashcard lên mây', style: TextStyle(fontSize: 11)),
+                      value: true,
+                      activeColor: primaryColor,
+                      onChanged: (val) {},
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-            // Theme & Preferences Section
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder,
-                ),
-              ),
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    title: const Text('Chế độ Tối (Dark Mode)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: const Text('Tối ưu cho việc học tập ban đêm', style: TextStyle(fontSize: 11)),
-                    value: themeMode == ThemeMode.dark,
-                    activeColor: primaryColor,
-                    onChanged: (val) {
-                      ref.read(themeModeProvider.notifier).toggleTheme();
-                    },
+              // Logout Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    await ref.read(authRepositoryProvider).signOut();
+                    ref.read(activeUserModelProvider.notifier).state = null;
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Đã đăng xuất tài khoản')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 18),
+                  label: const Text('Đăng xuất tài khoản', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.redAccent),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: const Text('Đồng bộ Cloud Firestore', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: const Text('Tự động lưu bài tập & Flashcard lên mây', style: TextStyle(fontSize: 11)),
-                    value: true,
-                    activeColor: primaryColor,
-                    onChanged: (val) {},
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Logout Button
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  await ref.read(authRepositoryProvider).signOut();
-                  ref.read(activeUserModelProvider.notifier).state = null;
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã đăng xuất tài khoản')),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 18),
-                label: const Text('Đăng xuất tài khoản', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.redAccent),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

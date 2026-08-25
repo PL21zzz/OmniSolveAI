@@ -26,67 +26,70 @@ class MainWrapper extends ConsumerWidget {
     ];
 
     return Scaffold(
+      extendBody: true, // Allows content to gracefully scroll behind floating bottom bar
       body: IndexedStack(
         index: currentIndex,
         children: screens,
       ),
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        height: 72,
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-          borderRadius: BorderRadius.circular(36),
-          border: Border.all(
-            color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder,
-            width: 1,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          height: 64,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavItem(
-              index: 0,
-              currentIndex: currentIndex,
-              icon: Icons.home_rounded,
-              label: 'Trang chủ',
-              onTap: () => ref.read(navigationIndexProvider.notifier).state = 0,
-            ),
-            _NavItem(
-              index: 1,
-              currentIndex: currentIndex,
-              icon: Icons.document_scanner_rounded,
-              label: 'Chẩn đoán',
-              onTap: () => ref.read(navigationIndexProvider.notifier).state = 1,
-            ),
-            _NavItem(
-              index: 2,
-              currentIndex: currentIndex,
-              icon: Icons.auto_awesome_rounded,
-              label: 'AI Tutor',
-              onTap: () => ref.read(navigationIndexProvider.notifier).state = 2,
-            ),
-            _NavItem(
-              index: 3,
-              currentIndex: currentIndex,
-              icon: Icons.style_rounded,
-              label: 'Flashcard',
-              onTap: () => ref.read(navigationIndexProvider.notifier).state = 3,
-            ),
-            _NavItem(
-              index: 4,
-              currentIndex: currentIndex,
-              icon: Icons.person_rounded,
-              label: 'Tài khoản',
-              onTap: () => ref.read(navigationIndexProvider.notifier).state = 4,
-            ),
-          ],
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavItem(
+                index: 0,
+                currentIndex: currentIndex,
+                icon: Icons.home_rounded,
+                label: 'Trang chủ',
+                onTap: () => ref.read(navigationIndexProvider.notifier).state = 0,
+              ),
+              _NavItem(
+                index: 1,
+                currentIndex: currentIndex,
+                icon: Icons.document_scanner_rounded,
+                label: 'Chẩn đoán',
+                onTap: () => ref.read(navigationIndexProvider.notifier).state = 1,
+              ),
+              _NavItem(
+                index: 2,
+                currentIndex: currentIndex,
+                icon: Icons.auto_awesome_rounded,
+                label: 'AI Tutor',
+                onTap: () => ref.read(navigationIndexProvider.notifier).state = 2,
+              ),
+              _NavItem(
+                index: 3,
+                currentIndex: currentIndex,
+                icon: Icons.style_rounded,
+                label: 'Flashcard',
+                onTap: () => ref.read(navigationIndexProvider.notifier).state = 3,
+              ),
+              _NavItem(
+                index: 4,
+                currentIndex: currentIndex,
+                icon: Icons.person_rounded,
+                label: 'Tài khoản',
+                onTap: () => ref.read(navigationIndexProvider.notifier).state = 4,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -118,21 +121,22 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: isSelected
             ? BoxDecoration(
-                color: primaryColor.withOpacity(isDark ? 0.2 : 0.12),
-                borderRadius: BorderRadius.circular(24),
+                color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                borderRadius: BorderRadius.circular(20),
               )
             : null,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              size: 24,
+              size: 20,
               color: isSelected
                   ? primaryColor
                   : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
@@ -141,7 +145,7 @@ class _NavItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected
                     ? primaryColor

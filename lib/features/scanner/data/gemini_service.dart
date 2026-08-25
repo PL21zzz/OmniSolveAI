@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -81,9 +82,12 @@ class GeminiService {
 
   Future<GenerativeModel> _getModel({String modelName = 'gemini-1.5-flash'}) async {
     final savedKey = await getSavedApiKey();
+    final envKey = dotenv.env['GEMINI_API_KEY'];
     final apiKey = (savedKey != null && savedKey.isNotEmpty)
         ? savedKey
-        : 'AIzaSyCkrr2ZxwzQ0WZj_v4dfA8gFGkQ-ZJFcjg'; // Fallback demo key
+        : ((envKey != null && envKey.isNotEmpty)
+            ? envKey
+            : 'AIzaSyCkrr2ZxwzQ0WZj_v4dfA8gFGkQ-ZJFcjg');
 
     return GenerativeModel(
       model: modelName,
@@ -143,7 +147,7 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
       return result;
     } catch (e) {
       debugPrint('Gemini Vision Grading Error: $e');
-      throw Exception('Chưa thể kết nối Gemini AI. Vui lòng nhập Gemini API Key của bạn (tạo miễn phí tại aistudio.google.com) hoặc kiểm tra lại kết nối mạng.');
+      throw Exception('Chưa thể kết nối Gemini AI. Vui lòng kiểm tra lại kết nối mạng hoặc nhập Gemini API Key chuẩn từ aistudio.google.com.');
     }
   }
 

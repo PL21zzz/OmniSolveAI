@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -48,6 +49,49 @@ class AuthRepository {
   Future<void> _ensureFirebaseInitialized() async {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp();
+    }
+  }
+
+  // Update Display Name & Avatar
+  Future<UserModel> updateUserProfile({
+    required String uid,
+    required String displayName,
+    Uint8List? avatarBytes,
+  }) async {
+    await _ensureFirebaseInitialized();
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(displayName);
+      }
+
+      String? photoUrl;
+      if (avatarBytes != null && avatarBytes.isNotEmpty) {
+        // Encode avatar as data URI for instant cross-platform Firestore storage
+        photoUrl = 'data:image/png;base64,${base64Encode(avatarBytes)}';
+      }
+
+      final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+      final docSnap = await docRef.get();
+
+      final existingData = docSnap.exists ? docSnap.data() ?? {} : {};
+      final updatedPhotoUrl = photoUrl ?? existingData['photoUrl'];
+
+      final updatedMap = {
+        'uid': uid,
+        'email': existingData['email'] ?? user?.email ?? '',
+        'displayName': displayName,
+        'photoUrl': updatedPhotoUrl,
+        'createdAt': existingData['createdAt'] ?? DateTime.now().toIso8601String(),
+      };
+
+      await docRef.set(updatedMap, SetOptions(merge: true));
+
+      return UserModel.fromMap(updatedMap);
+    } catch (e) {
+      debugPrint('Update profile error: $e');
+      throw Exception('Không thể cập nhật thông tin: $e');
     }
   }
 

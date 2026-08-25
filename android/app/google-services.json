@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "248928705874",
+    "project_id": "omnisolve-ai-1630b",
+    "storage_bucket": "omnisolve-ai-1630b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:248928705874:android:74d916a178fb49e1066e8b",
+        "android_client_info": {
+          "package_name": "com.omnisolve.omni_solve_ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "248928705874-3ur9svbnd0in0bkt3n2g26suf2n03a5b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkrr2ZxwzQ0WZj_v4dfA8gFGkQ-ZJFcjg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "248928705874-3ur9svbnd0in0bkt3n2g26suf2n03a5b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

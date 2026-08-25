@@ -16,7 +16,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedImageBytes;
   bool _isLoading = false;
-  String _selectedSubject = 'Toán học';
+  String _selectedSubject = 'Tiếng Anh';
 
   final List<String> _subjects = ['Toán học', 'Vật Lý', 'Hóa Học', 'Tiếng Anh'];
 
@@ -94,31 +94,36 @@ class _ScannerScreenState extends State<ScannerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 4-Subject Filter Pills
+            // 4-Subject Filter Pills with Horizontal Scroll (Fixes 4.0px Right Overflow!)
             Text('Chọn môn học chẩn đoán:', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: _subjects.map((subj) {
-                final isSelected = subj == _selectedSubject;
-                return ChoiceChip(
-                  label: Text(subj),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() {
-                        _selectedSubject = subj;
-                      });
-                    }
-                  },
-                  selectedColor: primaryColor.withValues(alpha: 0.25),
-                  labelStyle: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? primaryColor : (isDark ? Colors.white : Colors.black87),
-                  ),
-                );
-              }).toList(),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _subjects.map((subj) {
+                  final isSelected = subj == _selectedSubject;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(subj),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedSubject = subj;
+                          });
+                        }
+                      },
+                      selectedColor: primaryColor.withValues(alpha: 0.25),
+                      labelStyle: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? primaryColor : (isDark ? Colors.white : Colors.black87),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
             const SizedBox(height: 14),
 
@@ -187,7 +192,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Preset Sample Buttons for LDPlayer Testing!
+            // Preset Sample Buttons for LDPlayer Testing
             Text('Test nhanh trên LDPlayer (Bài mẫu 4 môn):', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: primaryColor)),
             const SizedBox(height: 6),
             SingleChildScrollView(

@@ -26,15 +26,16 @@ class MainWrapper extends ConsumerWidget {
     ];
 
     return Scaffold(
-      extendBody: true, // Allows content to gracefully scroll behind floating bottom bar
+      extendBody: true,
       body: IndexedStack(
         index: currentIndex,
         children: screens,
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
           height: 64,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(32),
@@ -51,42 +52,51 @@ class MainWrapper extends ConsumerWidget {
             ],
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(
-                index: 0,
-                currentIndex: currentIndex,
-                icon: Icons.home_rounded,
-                label: 'Trang chủ',
-                onTap: () => ref.read(navigationIndexProvider.notifier).state = 0,
+              Expanded(
+                child: _NavItem(
+                  index: 0,
+                  currentIndex: currentIndex,
+                  icon: Icons.home_rounded,
+                  label: 'Trang chủ',
+                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 0,
+                ),
               ),
-              _NavItem(
-                index: 1,
-                currentIndex: currentIndex,
-                icon: Icons.document_scanner_rounded,
-                label: 'Chẩn đoán',
-                onTap: () => ref.read(navigationIndexProvider.notifier).state = 1,
+              Expanded(
+                child: _NavItem(
+                  index: 1,
+                  currentIndex: currentIndex,
+                  icon: Icons.document_scanner_rounded,
+                  label: 'Chẩn đoán',
+                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 1,
+                ),
               ),
-              _NavItem(
-                index: 2,
-                currentIndex: currentIndex,
-                icon: Icons.auto_awesome_rounded,
-                label: 'AI Tutor',
-                onTap: () => ref.read(navigationIndexProvider.notifier).state = 2,
+              Expanded(
+                child: _NavItem(
+                  index: 2,
+                  currentIndex: currentIndex,
+                  icon: Icons.auto_awesome_rounded,
+                  label: 'AI Tutor',
+                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 2,
+                ),
               ),
-              _NavItem(
-                index: 3,
-                currentIndex: currentIndex,
-                icon: Icons.style_rounded,
-                label: 'Flashcard',
-                onTap: () => ref.read(navigationIndexProvider.notifier).state = 3,
+              Expanded(
+                child: _NavItem(
+                  index: 3,
+                  currentIndex: currentIndex,
+                  icon: Icons.style_rounded,
+                  label: 'Flashcard',
+                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 3,
+                ),
               ),
-              _NavItem(
-                index: 4,
-                currentIndex: currentIndex,
-                icon: Icons.person_rounded,
-                label: 'Tài khoản',
-                onTap: () => ref.read(navigationIndexProvider.notifier).state = 4,
+              Expanded(
+                child: _NavItem(
+                  index: 4,
+                  currentIndex: currentIndex,
+                  icon: Icons.person_rounded,
+                  label: 'Tài khoản',
+                  onTap: () => ref.read(navigationIndexProvider.notifier).state = 4,
+                ),
               ),
             ],
           ),
@@ -123,7 +133,7 @@ class _NavItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
         decoration: isSelected
             ? BoxDecoration(
                 color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.12),
@@ -142,14 +152,18 @@ class _NavItem extends StatelessWidget {
                   : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
             ),
             const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? primaryColor
-                    : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? primaryColor
+                      : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                ),
               ),
             ),
           ],

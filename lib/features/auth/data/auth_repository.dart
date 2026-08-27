@@ -68,7 +68,6 @@ class AuthRepository {
 
       String? photoUrl;
       if (avatarBytes != null && avatarBytes.isNotEmpty) {
-        // Encode avatar as data URI for instant cross-platform Firestore storage
         photoUrl = 'data:image/png;base64,${base64Encode(avatarBytes)}';
       }
 
@@ -121,7 +120,6 @@ class AuthRepository {
         createdAt: DateTime.now(),
       );
 
-      // Write directly to Cloud Firestore Database
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userModel.toMap());
 
       return userModel;
@@ -147,7 +145,6 @@ class AuthRepository {
       final user = credential.user;
       if (user == null) throw Exception('Đăng nhập thất bại');
 
-      // Fetch real user document from Cloud Firestore
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
         return UserModel.fromMap(doc.data()!);
@@ -166,7 +163,7 @@ class AuthRepository {
     }
   }
 
-  // Google Sign In (Cross-Platform Android, iOS & Web Popup)
+  // Google Sign In (Cross-Platform Android, iOS Native, Chrome & Safari Browser)
   Future<UserModel> signInWithGoogle() async {
     await _ensureFirebaseInitialized();
 
@@ -174,11 +171,19 @@ class AuthRepository {
       UserCredential userCredential;
 
       if (kIsWeb) {
-        // Use Firebase Auth signInWithPopup for Web & Safari browsers
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
-        userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+        try {
+          userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+        } catch (popupError) {
+          debugPrint('Popup sign in error, trying redirect: $popupError');
+          await FirebaseAuth.instance.signInWithRedirect(googleProvider);
+          final redirectResult = await FirebaseAuth.instance.getRedirectResult();
+          if (redirectResult.user == null) {
+            throw Exception('Đang chuyển hướng đăng nhập Google Safari...');
+          }
+          userCredential = redirectResult;
+        }
       } else {
-        // Native Android / iOS Google Sign In
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
         if (googleUser == null) throw Exception('Đã hủy đăng nhập Google');
 
@@ -202,7 +207,6 @@ class AuthRepository {
         createdAt: DateTime.now(),
       );
 
-      // Write directly to Cloud Firestore Database
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
             userModel.toMap(),
             SetOptions(merge: true),

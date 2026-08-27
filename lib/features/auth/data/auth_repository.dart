@@ -166,22 +166,31 @@ class AuthRepository {
     }
   }
 
-  // Google Sign In
+  // Google Sign In (Cross-Platform Android, iOS & Web Popup)
   Future<UserModel> signInWithGoogle() async {
     await _ensureFirebaseInitialized();
 
     try {
-      // Triggers native Google Account Picker Dialog
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) throw Exception('Đã hủy đăng nhập Google');
+      UserCredential userCredential;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+      if (kIsWeb) {
+        // Use Firebase Auth signInWithPopup for Web & Safari browsers
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      } else {
+        // Native Android / iOS Google Sign In
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) throw Exception('Đã hủy đăng nhập Google');
 
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final OAuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      }
+
       final user = userCredential.user;
       if (user == null) throw Exception('Không thể liên kết Google Auth');
 
@@ -209,9 +218,13 @@ class AuthRepository {
   // Sign Out
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
-      if (Firebase.apps.isNotEmpty) {
+      if (kIsWeb) {
         await FirebaseAuth.instance.signOut();
+      } else {
+        await _googleSignIn.signOut();
+        if (Firebase.apps.isNotEmpty) {
+          await FirebaseAuth.instance.signOut();
+        }
       }
     } catch (_) {}
   }
@@ -227,6 +240,8 @@ class AuthRepository {
       return 'Định dạng Email không hợp lệ.';
     } else if (errorMsg.contains('ApiException: 10')) {
       return 'Chưa thêm mã SHA-1 của máy vào Firebase Console. Vui lòng kiểm tra lại cấu hình Google Auth trên Firebase.';
+    } else if (errorMsg.contains('popup-closed-by-user')) {
+      return 'Đã đóng cửa sổ đăng nhập Google.';
     }
     return 'Lỗi xác thực Firebase: $errorMsg';
   }

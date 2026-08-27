@@ -80,7 +80,7 @@ class GeminiService {
     await prefs.setString(_prefApiKey, key.trim());
   }
 
-  Future<GenerativeModel> _getModel({String modelName = 'gemini-1.5-flash'}) async {
+  Future<GenerativeModel> _getModel({String modelName = 'gemini-1.5-flash-latest'}) async {
     final savedKey = await getSavedApiKey();
     final envKey = dotenv.env['GEMINI_API_KEY'];
     final apiKey = (savedKey != null && savedKey.isNotEmpty)
@@ -100,10 +100,8 @@ class GeminiService {
     Uint8List imageBytes, {
     String selectedSubject = 'Toán học',
   }) async {
-    try {
-      final model = await _getModel();
-      final prompt = Content.multi([
-        TextPart('''
+    final prompt = Content.multi([
+      TextPart('''
 Bạn là một gia sư AI chuyên gia 4 môn: Toán học, Vật Lý, Hóa Học, Tiếng Anh.
 Hãy đọc ảnh bài làm/bài tập của học sinh môn "$selectedSubject" và chấm bài theo định dạng JSON:
 {
@@ -121,10 +119,32 @@ Hãy đọc ảnh bài làm/bài tập của học sinh môn "$selectedSubject" 
 }
 Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã markdown.
 '''),
-        if (imageBytes.isNotEmpty) DataPart('image/jpeg', imageBytes),
-      ]);
+      if (imageBytes.isNotEmpty) DataPart('image/jpeg', imageBytes),
+    ]);
 
-      final response = await model.generateContent([prompt]);
+    // Try model names in order: gemini-1.5-flash-latest, gemini-2.0-flash, gemini-1.5-pro
+    final candidateModels = ['gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+    GenerateContentResponse? response;
+    Object? lastError;
+
+    for (final mName in candidateModels) {
+      try {
+        final model = await _getModel(modelName: mName);
+        response = await model.generateContent([prompt]);
+        if (response.text != null && response.text!.isNotEmpty) {
+          break;
+        }
+      } catch (e) {
+        debugPrint('Model $mName error: $e');
+        lastError = e;
+      }
+    }
+
+    if (response == null || response.text == null || response.text!.isEmpty) {
+      throw Exception('Không thể truy cập mô hình Gemini Vision ($lastError). Vui lòng dán Gemini API Key mới của bạn (tạo 5 giây tại aistudio.google.com).');
+    }
+
+    try {
       final rawText = response.text ?? '{}';
       final cleanJson = rawText
           .replaceAll('```json', '')
@@ -146,8 +166,8 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
 
       return result;
     } catch (e) {
-      debugPrint('Gemini Vision Grading Error: $e');
-      throw Exception('Chưa thể kết nối Gemini AI. Vui lòng kiểm tra lại kết nối mạng hoặc nhập Gemini API Key chuẩn từ aistudio.google.com.');
+      debugPrint('JSON parse error: $e');
+      throw Exception('Gemini AI đã phân tích ảnh nhưng định dạng câu trả lời bị gián đoạn. Vui lòng thử lại.');
     }
   }
 
@@ -156,19 +176,25 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
     required String query,
     required String subject,
   }) async {
-    try {
-      final model = await _getModel();
-      final prompt = '''
+    final prompt = '''
 Bạn là một gia sư AI thân thiện, kiên nhẫn chuyên môn "$subject" (Toán học, Vật Lý, Hóa Học, Tiếng Anh).
 Học sinh đang hỏi: "$query".
 Hãy trả lời ngắn gọn, dễ hiểu, sử dụng biểu tượng cảm xúc (emoji) và giải thích từng bước rõ ràng.
 ''';
 
-      final response = await model.generateContent([Content.text(prompt)]);
-      return response.text ?? 'Gia sư AI chưa thể phản hồi lúc này. Vui lòng hỏi lại nhé!';
-    } catch (e) {
-      debugPrint('Gemini Chat Error: $e');
-      return 'Không thể kết nối Gemini AI: $e. Vui lòng kiểm tra lại Gemini API Key của bạn.';
+    final candidateModels = ['gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+    for (final mName in candidateModels) {
+      try {
+        final model = await _getModel(modelName: mName);
+        final response = await model.generateContent([Content.text(prompt)]);
+        if (response.text != null && response.text!.isNotEmpty) {
+          return response.text!;
+        }
+      } catch (e) {
+        debugPrint('Chat model $mName error: $e');
+      }
     }
+
+    return 'Không thể kết nối Gemini AI. Vui lòng kiểm tra lại Gemini API Key của bạn.';
   }
 }

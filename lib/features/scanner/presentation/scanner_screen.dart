@@ -150,7 +150,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Chấm Bài & Sửa Bài (4 Môn)'),
+        title: const Text('AI Chấm Bài & Sửa Bài'),
         actions: [
           IconButton(
             icon: const Icon(Icons.key_rounded),

@@ -37,7 +37,7 @@ class SolvedProblemResult {
 
   factory SolvedProblemResult.fromJson(Map<String, dynamic> json) {
     return SolvedProblemResult(
-      title: json['title'] ?? 'Bài tập 4 môn trọng tâm',
+      title: json['title'] ?? 'Bài tập trọng tâm',
       subject: json['subject'] ?? 'Toán học',
       isCorrect: json['isCorrect'] ?? false,
       isSubjectMismatch: json['isSubjectMismatch'] ?? false,
@@ -106,7 +106,7 @@ class GeminiService {
   }) async {
     final prompt = Content.multi([
       TextPart('''
-Bạn là một gia sư AI chuyên gia 4 môn: Toán học, Vật Lý, Hóa Học, Tiếng Anh.
+Bạn là một gia sư AI chuyên gia các môn học: Toán học, Vật Lý, Hóa Học, Tiếng Anh.
 Học sinh đã chọn danh mục môn học: "$selectedSubject".
 
 Nhiệm vụ 1 (Kiểm tra môn học):
@@ -188,7 +188,7 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
     required String subject,
   }) async {
     final prompt = '''
-Bạn là một gia sư AI thân thiện, kiên nhẫn chuyên môn "$subject" (Toán học, Vật Lý, Hóa Học, Tiếng Anh).
+Bạn là một gia sư AI thân thiện, kiên nhẫn chuyên môn "$subject".
 Học sinh đang hỏi: "$query".
 Hãy trả lời ngắn gọn, dễ hiểu, sử dụng biểu tượng cảm xúc (emoji) và giải thích từng bước rõ ràng.
 ''';

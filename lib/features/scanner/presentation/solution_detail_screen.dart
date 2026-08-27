@@ -20,6 +20,7 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
     final isCorrect = widget.result.isCorrect;
+    final isMismatch = widget.result.isSubjectMismatch;
 
     return Scaffold(
       appBar: AppBar(
@@ -40,6 +41,45 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Subject Mismatch Warning Banner (If Selected Subject != Uploaded Image Subject)
+            if (isMismatch) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade900.withValues(alpha: isDark ? 0.3 : 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.amber.shade700, width: 1.5),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '⚠️ Môn Học Không Khớp!',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.amber),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Bạn đang chọn danh mục "${widget.result.subject}" nhưng ảnh bài làm thuộc môn "${widget.result.detectedSubject.isNotEmpty ? widget.result.detectedSubject : "khác"}". Vui lòng chọn đúng danh mục môn để AI chấm bài chính xác nhất!',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // AI Score & Evaluation Status Card
             Container(
               padding: const EdgeInsets.all(16),
@@ -160,60 +200,6 @@ class _SolutionDetailScreenState extends State<SolutionDetailScreen> {
 
             // Display Active Hint Content
             if (_activeHintLevel > 0) _buildHintDisplayCard(isDark, primaryColor),
-
-            const SizedBox(height: 24),
-
-            // Similar Practice Problem Card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: primaryColor.withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.fitness_center_rounded, color: primaryColor, size: 20),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Đề bài tương tự để luyện tập',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  MathView(
-                    tex: widget.result.similarProblem,
-                    textStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Đang tạo đề luyện tập mới từ AI...')),
-                        );
-                      },
-                      icon: const Icon(Icons.auto_awesome, size: 18),
-                      label: const Text('Giải bài tương tự này'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),

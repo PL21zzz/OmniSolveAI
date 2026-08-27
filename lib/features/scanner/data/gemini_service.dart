@@ -10,6 +10,8 @@ class SolvedProblemResult {
   final String title;
   final String subject;
   final bool isCorrect;
+  final bool isSubjectMismatch;
+  final String detectedSubject;
   final int score;
   final String extractedEquation;
   final int errorStep;
@@ -17,12 +19,13 @@ class SolvedProblemResult {
   final String hintLevel1;
   final String hintLevel2;
   final String fullSolution;
-  final String similarProblem;
 
   SolvedProblemResult({
     required this.title,
     required this.subject,
     required this.isCorrect,
+    required this.isSubjectMismatch,
+    required this.detectedSubject,
     required this.score,
     required this.extractedEquation,
     required this.errorStep,
@@ -30,7 +33,6 @@ class SolvedProblemResult {
     required this.hintLevel1,
     required this.hintLevel2,
     required this.fullSolution,
-    required this.similarProblem,
   });
 
   factory SolvedProblemResult.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,8 @@ class SolvedProblemResult {
       title: json['title'] ?? 'Bài tập 4 môn trọng tâm',
       subject: json['subject'] ?? 'Toán học',
       isCorrect: json['isCorrect'] ?? false,
+      isSubjectMismatch: json['isSubjectMismatch'] ?? false,
+      detectedSubject: json['detectedSubject'] ?? '',
       score: json['score'] ?? 8,
       extractedEquation: json['extractedEquation'] ?? '',
       errorStep: json['errorStep'] ?? 0,
@@ -45,7 +49,6 @@ class SolvedProblemResult {
       hintLevel1: json['hintLevel1'] ?? '',
       hintLevel2: json['hintLevel2'] ?? '',
       fullSolution: json['fullSolution'] ?? '',
-      similarProblem: json['similarProblem'] ?? '',
     );
   }
 
@@ -54,6 +57,8 @@ class SolvedProblemResult {
       'title': title,
       'subject': subject,
       'isCorrect': isCorrect,
+      'isSubjectMismatch': isSubjectMismatch,
+      'detectedSubject': detectedSubject,
       'score': score,
       'extractedEquation': extractedEquation,
       'errorStep': errorStep,
@@ -61,7 +66,6 @@ class SolvedProblemResult {
       'hintLevel1': hintLevel1,
       'hintLevel2': hintLevel2,
       'fullSolution': fullSolution,
-      'similarProblem': similarProblem,
       'createdAt': DateTime.now().toIso8601String(),
     };
   }
@@ -80,7 +84,6 @@ class GeminiService {
     await prefs.setString(_prefApiKey, key.trim());
   }
 
-  // Load API key from SharedPreferences or .env file (dotenv.env['GEMINI_API_KEY'])
   Future<GenerativeModel> _getModel({String modelName = 'gemini-2.5-flash'}) async {
     final savedKey = await getSavedApiKey();
     final envKey = dotenv.env['GEMINI_API_KEY'];
@@ -96,7 +99,7 @@ class GeminiService {
     );
   }
 
-  // 100% Real Gemini Vision Grading & Analysis
+  // 100% Real Gemini Vision Grading & Analysis with Subject Validation
   Future<SolvedProblemResult> analyzeProblemImage(
     Uint8List imageBytes, {
     String selectedSubject = 'Toán học',
@@ -104,26 +107,33 @@ class GeminiService {
     final prompt = Content.multi([
       TextPart('''
 Bạn là một gia sư AI chuyên gia 4 môn: Toán học, Vật Lý, Hóa Học, Tiếng Anh.
-Hãy đọc ảnh bài làm/bài tập của học sinh môn "$selectedSubject" và chấm bài theo định dạng JSON:
+Học sinh đã chọn danh mục môn học: "$selectedSubject".
+
+Nhiệm vụ 1 (Kiểm tra môn học):
+Hãy đọc ảnh và kiểm tra xem nội dung ảnh bài làm có ĐÚNG thuộc môn "$selectedSubject" hay không.
+- Nếu nội dung ảnh là môn khác hoàn toàn (Ví dụ chọn danh mục "$selectedSubject" nhưng ảnh lại là bài tập Tiếng Anh/Vật Lý/Hóa Học): Hãy đặt "isSubjectMismatch": true và "detectedSubject": "Tên môn thực tế trong ảnh".
+
+Nhiệm vụ 2 (Chấm bài):
+Hãy chấm bài theo định dạng JSON:
 {
   "title": "Tên bài tập hoặc chủ đề",
   "subject": "$selectedSubject",
-  "isCorrect": true/false (true nếu bài làm ĐÚNG hoàn toàn, false nếu có LỖI SAI hoặc chưa hoàn thành),
-  "score": số_điểm_thang_10 (ví dụ 10 nếu đúng, 6-9 nếu đúng một phần, 0-5 nếu sai nặng),
+  "isSubjectMismatch": true/false (true nếu bài làm KHÔNG THUỘC môn $selectedSubject),
+  "detectedSubject": "Môn học thực tế phát hiện trong ảnh (nếu isSubjectMismatch=true)",
+  "isCorrect": true/false (true nếu bài làm ĐÚNG hoàn toàn, false nếu có LỖI SAI),
+  "score": số_điểm_thang_10 (ví dụ 10 nếu đúng, 0-9 nếu sai),
   "extractedEquation": "Nội dung đề bài và lời giải trích xuất từ ảnh",
   "errorStep": số_bước_bị_sai (nếu isCorrect=true thì để 0),
-  "errorExplanation": "Nếu làm ĐÚNG: Khen ngợi và khen điểm hay của lời giải. Nếu làm SAI: Chỉ rõ lý do vì sao bước đó chưa chính xác",
+  "errorExplanation": "Nếu sai môn: Báo môn học không khớp. Nếu đúng môn & làm ĐÚNG: Khen ngợi. Nếu đúng môn & làm SAI: Chỉ rõ lý do vì sao chưa chính xác",
   "hintLevel1": "Gợi ý mức 1 (nhắc nhở định hướng tư duy)",
-  "hintLevel2": "Gợi ý mức 2 (công thức hoặc quy tắc cần áp dụng)",
-  "fullSolution": "Lời giải chi tiết từng bước chuẩn xác",
-  "similarProblem": "1 bài tập tương tự kèm đáp số để luyện tập"
+  "hintLevel2": "Gợi ý mức 2 (công thức hoặc quy tắc áp dụng)",
+  "fullSolution": "Lời giải chi tiết từng bước chuẩn xác"
 }
 Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã markdown.
 '''),
       if (imageBytes.isNotEmpty) DataPart('image/jpeg', imageBytes),
     ]);
 
-    // Candidate models starting with gemini-2.5-flash requested by Google API
     final candidateModels = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
     GenerateContentResponse? response;
     Object? lastError;
@@ -142,7 +152,7 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
     }
 
     if (response == null || response.text == null || response.text!.isEmpty) {
-      throw Exception('Không thể kết nối Gemini Vision ($lastError). Vui lòng nhập Gemini API Key của bạn (tạo 5 giây tại aistudio.google.com).');
+      throw Exception('Không thể kết nối Gemini Vision ($lastError). Vui lòng nhập Gemini API Key mới từ aistudio.google.com.');
     }
 
     try {

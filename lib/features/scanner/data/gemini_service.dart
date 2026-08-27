@@ -80,7 +80,8 @@ class GeminiService {
     await prefs.setString(_prefApiKey, key.trim());
   }
 
-  Future<GenerativeModel> _getModel({String modelName = 'gemini-1.5-flash-latest'}) async {
+  // Load API key from SharedPreferences or .env file (dotenv.env['GEMINI_API_KEY'])
+  Future<GenerativeModel> _getModel({String modelName = 'gemini-2.5-flash'}) async {
     final savedKey = await getSavedApiKey();
     final envKey = dotenv.env['GEMINI_API_KEY'];
     final apiKey = (savedKey != null && savedKey.isNotEmpty)
@@ -122,8 +123,8 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
       if (imageBytes.isNotEmpty) DataPart('image/jpeg', imageBytes),
     ]);
 
-    // Try model names in order: gemini-1.5-flash-latest, gemini-2.0-flash, gemini-1.5-pro
-    final candidateModels = ['gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+    // Candidate models starting with gemini-2.5-flash requested by Google API
+    final candidateModels = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
     GenerateContentResponse? response;
     Object? lastError;
 
@@ -141,7 +142,7 @@ Chỉ trả về duy nhất chuỗi JSON thuần túy, không kèm khối mã ma
     }
 
     if (response == null || response.text == null || response.text!.isEmpty) {
-      throw Exception('Không thể truy cập mô hình Gemini Vision ($lastError). Vui lòng dán Gemini API Key mới của bạn (tạo 5 giây tại aistudio.google.com).');
+      throw Exception('Không thể kết nối Gemini Vision ($lastError). Vui lòng nhập Gemini API Key của bạn (tạo 5 giây tại aistudio.google.com).');
     }
 
     try {
@@ -182,7 +183,7 @@ Học sinh đang hỏi: "$query".
 Hãy trả lời ngắn gọn, dễ hiểu, sử dụng biểu tượng cảm xúc (emoji) và giải thích từng bước rõ ràng.
 ''';
 
-    final candidateModels = ['gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+    final candidateModels = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
     for (final mName in candidateModels) {
       try {
         final model = await _getModel(modelName: mName);
